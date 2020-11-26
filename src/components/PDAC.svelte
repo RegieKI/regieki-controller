@@ -8,16 +8,16 @@
 
 
 
-	$: _thing = () => {
+	$: _pdac = () => {
 		if (!$active.$$pathname) {
 			console.log('[Project.svelte] ❌✨  no pathname...', $params.id);
 			return {};
 		}
-		return $db.things[ $db.current_thing ];
+		return $db.pdacs[ $db.current_pdac ];
 	}
 
 
-	$: thing = _thing();
+	$: pdac = _pdac();
 
 	function onAddRepo() {
 		db.addRepo(); 
@@ -26,8 +26,8 @@
 </script>
 
 
-{#if thing}
-	{ JSON.stringify( thing ) }
+{#if pdac}
+	{ JSON.stringify( pdac ) }
 {:else}
-<div>No thing found</div>
+<div>No pdac found</div>
 {/if}

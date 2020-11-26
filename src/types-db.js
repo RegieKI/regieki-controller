@@ -1,8 +1,10 @@
 module.exports = {
 	db: {
-		"current_thing": null,
-		"things": {}
+		"current_pdac": null,
+		"pdacs": {}
 	},
-	thing: {
+	pdac: {
+		ip_address: '',
+		hostname: ''
 	}
 }

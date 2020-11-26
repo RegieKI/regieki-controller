@@ -7,6 +7,19 @@ const templates = require('./types-db.js')
 const expandHomeDir = require('expand-home-dir')
 const contextMenu = require('electron-context-menu');
 
+const { Client } = require('node-osc')
+const osc = new Client('10.0.8.201', 7777 );
+
+promiseIpc.on('sendOSC', (args) => {
+  // console.log('[electron-app.js] 🎷 ✨  sending osc:', args.path, args.message );
+
+  return new Promise( (resolve, reject) => {
+    osc.send( args.path, args.message, (err) => {
+      if (err) return reject(err)
+      return resolve( {} )
+    })
+  })
+});
 
 const production = !process.env.ELECTRON_RELOAD;
 
@@ -98,9 +111,20 @@ const readFileSync = ( url, template ) => {
   }); 
 }
 
+promiseIpc.on('showDialogBox', (config) => {
+
+  console.log('[electron-app.js] 👋 🚚  showDialogBox')
+
+  return new Promise( (resolve,reject) => {
+    dialog.showMessageBox(null, config).then(r => {
+      resolve( r.response )
+    })
+  })
+})
+
 
 promiseIpc.on('clearCache', (args) => {
-  console.log('[electron-app.js] 👋🚚  clearCache')
+  console.log('[electron-app.js] 👋 🚚  clearCache')
 
   return new Promise( (resolve,reject) => {
 
@@ -114,7 +138,7 @@ promiseIpc.on('clearCache', (args) => {
 
 promiseIpc.on('getDB', args => {
   const p = path.join(__dirname, `../bin/db.json`);
-  console.log('[electron-app.js] 👋🚚  getDB', p)
+  console.log('[electron-app.js] 👋 🚚  getDB', p)
   return readFileSync( p, templates.db );
 });
 
@@ -122,7 +146,7 @@ promiseIpc.on('getDB', args => {
 promiseIpc.on('setDB', (args) => {
   const p = path.join(__dirname, `../bin/db.json`);
   const j =  JSON.stringify( args, null, 2 );
-  console.log('[electron-app.js] 👋🚚  setDB', p)
+  console.log('[electron-app.js] 👋 🚚  setDB', p)
   return fsp.writeFile(p, j, 'utf8');
 });
 

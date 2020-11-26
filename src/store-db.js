@@ -4,15 +4,15 @@ import templates from './types-db.js'
 function createStore() {
   const { subscribe, set, update } = writable( templates.db );
 
-  const setCurrentThing = ( id ) => {
+  const setCurrentPDAC = ( id ) => {
     update( s => {
-      const k = Object.keys( s.things );
+      const k = Object.keys( s.pdacs );
       if ( k.indexOf( id ) != -1 ) {
-        console.log('[store-db.js] 💾 current thing set to:', id)
-        s.current_thing = id;
+        console.log('[store-db.js] 💾 current pdac set to:', id)
+        s.current_pdac = id;
       } else {
-        console.log('[store-db.js] ❌  no thing to set as current, setting to null');
-        s.current_thing = null;
+        console.log('[store-db.js] ❌  no pdac to set as current, setting to null');
+        s.current_pdac = null;
       }
       return s;
     });
@@ -52,23 +52,21 @@ function createStore() {
   }
 
 
-  const neuThing = ( name ) => {
-    console.log('[store-db.js] 🆕 creating new thing...', name)
+  const neuPDAC = ( neu ) => {
+    console.log('[store-db.js] 🆕 creating new pdac...', name)
     update( s => {
-      const id = name.toLowerCase().replace(/ /g, '-');
-      s.things[id] = templates.thing;
-      s.things[id].name = id;
+      s.pdacs[neu.hostname] = neu;
       return s;
     });
     save();
   }
 
-  const removeThing = ( key ) => {
+  const removePDAC = ( key ) => {
 
-    console.log('[store-db.js] 🛑 deleting thing...', key)
+    console.log('[store-db.js] 🛑 deleting pdac...', key)
     update( s => {
-      if (s.current_thing == key) s.current_thing = null;
-      delete s.things[key];
+      if (s.current_pdac == key) s.current_pdac = null;
+      delete s.pdacs[key];
       return s;
     })
     return saveLoad();
@@ -96,9 +94,9 @@ function createStore() {
 
     load,
     save,
-    neuThing,
-    setCurrentThing,
-    removeThing
+    neuPDAC,
+    setCurrentPDAC,
+    removePDAC
   };
 }
 
