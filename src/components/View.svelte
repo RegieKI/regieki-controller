@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { db } from '@/store-db.js'
   import axios from 'axios'
+import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 
   export let pdac;
   let refreshing = false
@@ -12,7 +13,57 @@
   $: apiReboot = 'http://' + pdac.ip_address + ':3000/system/reboot?as=json'
 
   $: cmds = [ 'ssh pi@' + pdac.ip_address, 'ssh pi@' + pdac.hostname ]
+
   let cmdInput
+  let ws
+  let status = {
+  	type: 'ok',
+  	message: 'pending'
+  }
+
+  onMount( async () => {
+    const url = `ws://${pdac.ip_address}:8765`
+    console.log('[overview.svelte] 👁 ⚡️  opening websocket...', url)
+    try {
+	    ws = new WebSocket(url);
+	    ws.addEventListener('open', onOpen)
+	    ws.addEventListener('message', onMessage)
+	    ws.addEventListener('error', onError)
+	    ws.addEventListener('close', onClose)
+	    console.log('[View.svelte] 🌐 ✅  websockets created at:', url)
+	    window.callbacks[pdac.hostname] = send;
+	} catch (err) {
+	    console.log('[View.svelte] 🌐 ❌  could not create websockets:', err.message)
+
+	}
+
+
+  })
+
+  function onClose(e) {
+
+    console.log('[View.svelte] 🌐 🛑  websockets closed:', e)
+    status = {
+    	type: 'error',
+    	message: 'closed' + ((e.wasClean) ? ' (clean)' : ' (error)')
+    }
+    trigger = Math.random()
+  }
+
+  function onOpen(e) {
+    console.log('[View.svelte] 🌐 ✅  websockets opened:', e)
+    status = {
+    	type: 'success',
+    	message: e.currentTarget.url
+    }
+  }
+  function onMessage(e) {
+    console.log('[View.svelte] 🌐 ✨  websockets msg')
+  }
+  function onError(e) {
+  	
+    console.log('[View.svelte] 🌐 ❌  websockets error:', e, e.type)
+  }
 
 
   export function reboot() {
@@ -46,15 +97,35 @@
   }
 
   function copy( e ) {
-  	console.log(e)
-  	console.log(e.target.value)
-  	console.log(cmdInput.value, '....')
   	const cmd = e.target.value
   	e.target.value = 'copy'
   	cmdInput.value = cmd
   	cmdInput.select()
   	document.execCommand('copy')
-  	console.log('YAY?')
+  }
+
+  let vizTitle, vizMessage
+
+  export function send( json ) {
+
+    console.log('[View.svelte] 🌐  sending websockets...')
+    try {
+    	const txt = JSON.stringify( json )
+	    ws.send( txt )
+	    console.log('[View.svelte] 🌐 ✅  successfully sent message:', txt)
+	} catch( err ) {
+	    console.log('[View.svelte] 🌐 ❌  couldnt send websockets msg:', err.message)
+
+	}
+  }
+
+  function viz() {
+
+    if ( ws ) {
+    	send( { title: vizTitle || '~', message: vizMessage || '~', type: API_VIZ } )
+    } else {
+	    console.log('[View.svelte] 🌐 ❌  websockets doesnt exist?')
+    }
   }
 </script>
 
@@ -77,6 +148,7 @@
 			background: grey
 			width: 480px
 			height: 320px
+			background: transparent
 </style>
 
 
@@ -85,19 +157,22 @@
 		<div>{pdac.hostname}</div>
 		<div>{pdac.ip_address}</div>
 	</div>
+	<div class="mb08 flex {status.type}">
+		{status.message}
+	</div>
 	<div class="cross relative">
 		<svg viewBox="0 0 480 320" class="absolute">
 			<line x1="0" y1="0" x2="480" y2="320" />
 			<line x1="480" y1="0" x2="0" y2="320" />ssh pi@10.0.8.207
 		</svg>
-		{#if !refreshing} <iframe class="iframe" {src} /> {/if}
+		{#if !refreshing} <iframe allowtransparency="true" class="iframe" {src} /> {/if}
 	</div>
 	<div class="flex flex-row justify-between align-center mt08">
 		<div class="flex flex-row">
 			<button 
 				class="mr08" 
-				on:mousedown={e => { trigger = Math.random(); refreshing = true} }
-				on:mouseup={ e => refreshing = false}>refresh</button>
+				on:mousedown={e => { trigger = Math.random()} }
+				>refresh</button>
 			<button on:click={ reboot }>reboot</button>
 		</div>
 
@@ -112,6 +187,19 @@
 					{/each}
 				</select>
 			</div>
+		</div>
+	</div>
+
+
+
+	<div class="flex flex-row justify-between align-center mt08">
+		<div class="flex flex-row">
+
+			<input class="mr08" type="text" bind:value={vizTitle} placeholder="title" />
+			<input type="text" bind:value={vizMessage} placeholder="message" />
+		</div>
+		<div>
+			<button on:click={ viz }>send</button>
 		</div>
 	</div>
 </div>

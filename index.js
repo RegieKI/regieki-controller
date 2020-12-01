@@ -3,7 +3,7 @@ const path = require('path')
 const promiseIpc = require('electron-promise-ipc');
 const fsp = require( 'fs-promise' );
 const fs = require( 'fs' );
-const templates = require('./types-db.js')
+const templates = require('./src/types-db.js')
 const expandHomeDir = require('expand-home-dir')
 const contextMenu = require('electron-context-menu');
 
@@ -137,14 +137,14 @@ promiseIpc.on('clearCache', (args) => {
 });
 
 promiseIpc.on('getDB', args => {
-  const p = path.join(__dirname, `../bin/db.json`);
+  const p = path.join(__dirname, `./bin/db.json`);
   console.log('[electron-app.js] 👋 🚚  getDB', p)
   return readFileSync( p, templates.db );
 });
 
 
 promiseIpc.on('setDB', (args) => {
-  const p = path.join(__dirname, `../bin/db.json`);
+  const p = path.join(__dirname, `./bin/db.json`);
   const j =  JSON.stringify( args, null, 2 );
   console.log('[electron-app.js] 👋 🚚  setDB', p)
   return fsp.writeFile(p, j, 'utf8');

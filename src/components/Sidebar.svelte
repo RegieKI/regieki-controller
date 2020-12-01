@@ -3,6 +3,7 @@
   import { db } from '@/store-db.js'
   import template from '@/types-db.js'
   import axios from 'axios'
+  import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 
 
   const emotions = [
@@ -165,6 +166,17 @@
       })
   }
 
+  let vizTitle, vizMessage
+
+  function sendAll() {
+    Object.keys( window.callbacks ).forEach( k => {
+      const cb = window.callbacks[k]
+      console.log(k, cb)
+      cb( { title: vizTitle || '~', message: vizMessage || '~', type: API_VIZ })
+    })
+  }
+
+  let views = []
 
 </script>
 
@@ -190,20 +202,16 @@
     {/each}
   </div>
   <div class="actions flex flex-column">
-    <!-- <div class="wobble">
-      {#each pdacs as pdac}
-        <div>{pdac.name} / {pdac.ip}</div>
-        <div class="flex flex-row">
-          {#each pdac.waves as w}
-            <div class="dot" style="transform: scale({w})"></div>
-          {/each}
-        </div>
-      {/each}
-    </div> -->
 
     <input type="text" style="border-bottom: none" placeholder="hostname" bind:value={neu.hostname} />
     <input type="text" placeholder="ip address" bind:value={neu.ip_address} />
-    <button {disabled} style="border-top: none" class="block" on:click={onNew} >add new pdac</button>
+    <button {disabled} style="border-top: none" on:click={onNew} >add new pdac</button>
+
+    <div class="bright pb1 mb1 mt2 bb1-solid">Visual</div>
+    <input class="mt1 mb04" type="text" placeholder="title" bind:value={vizTitle} />
+    <input class="mb04" type="text" placeholder="message" bind:value={vizMessage} />
+    <button class="mb1" on:click={sendAll} >send to all</button>
+
     <div class="bright pb1 mb1 mt2 bb1-solid">Actions</div>
     <button class="mt1" on:click={ e => osc = !osc } class:filled={osc}>send test osc to av</button>
     <button class="mt04" on:click={ rebootAll }>reboot all</button>

@@ -1,8 +1,8 @@
 {
-  "name": "gits",
+  "name": "PDACs-v1.1",
   "version": "0.0.1",
-  "description": "Multi-Git Client",
-  "main": "src/electron-app.js",
+  "description": "PDAC Manager",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c",
@@ -10,7 +10,7 @@
     "start": "nvm use v14.15.0 && electron .",
     "start:dev": "concurrently \"npm run autobuild\" \"ELECTRON_RELOAD=yes electron .\"",
     "start:browser": "concurrently \"npm run autobuild\" \"browser-sync public -w --no-ghost-mode\"",
-    "package": "electron-packager . --out=dist --ignore=src --ignore=rollup.config.js --ignore=.gitignore --overwrite"
+    "package": "electron-packager . --out=dist PDACs --ignore=rollup.config.js --ignore=.gitignore --overwrite"
   },
   "engines": {
     "node": "14.15.0"
@@ -56,7 +56,6 @@
     "speed-date": "^1.0.0",
     "svelte-hash-router": "^1.0.1",
     "svelte-preprocess-css-global": "^0.0.1",
-    "svelte-preprocess-sass": "^0.2.0",
-    "wcjs-gs": "file:./wcjs-gs"
+    "svelte-preprocess-sass": "^0.2.0"
   }
 }

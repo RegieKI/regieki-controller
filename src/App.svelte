@@ -6,6 +6,7 @@ import { db } from '@/store-db.js'
 
 onMount(async () => {
 	db.load();
+	window.callbacks = {}
 	// osc = new OSC()
 
 	// osc.on('open', onOscOpen)
