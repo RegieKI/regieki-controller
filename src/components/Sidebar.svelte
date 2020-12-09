@@ -29,6 +29,7 @@
     { ip: '10.0.8.217', name: 'pdac-stage-08', waves: [0.5,0.5,0.5,0.5,0.5,0.5,0.5] }
   ]
 
+
   const ipc  = require('electron').ipcRenderer;
 
   let osc = false
@@ -171,12 +172,43 @@
   function sendAll() {
     Object.keys( window.callbacks ).forEach( k => {
       const cb = window.callbacks[k]
-      console.log(k, cb)
-      cb( { title: vizTitle || '~', message: vizMessage || '~', type: API_VIZ })
+      const msg = { title: vizTitle || '~', message: vizMessage || '~', type: API_VIZ }
+      cb( msg )
     })
   }
 
   let views = []
+  let a = 0
+  let b = 0
+  let speed = 100
+  let loopie = false
+
+  function onLoopie() {
+    loopie = !loopie 
+
+    if (loopie) loop()
+  }
+
+
+  function loop() {
+
+    const keys = Object.keys( window.limpit )
+    const k = keys[a]
+    const ws = window.limpit[k];
+    const e = emotions[b]
+    ws.send( `{ "type": "viz", "title": "${e}", "message": "${vizMessage}"}`)
+
+    setTimeout( () => {
+
+      a += 1
+      if (a >= 5 ) {
+        a = 0
+        b += 1
+        if (b >= 8) b = 0
+      }
+      if (loopie) loop()
+    }, speed)
+  }
 
 </script>
 
@@ -193,9 +225,9 @@
 
 <nav class="sidebar p1 flex flex-column justify-between">
   <div class="pdacs mb1">
-    <h2 class="mb1 pb1 bright bb1-solid">PDAC Overview</h2>
+    <h2 class="mb1 pb1 bright bb1-solid f2">PDACs (v1.2-a)</h2>
     {#each Object.keys( $db.pdacs ) as k}
-      <div class="mb04">
+      <div class="mb0-4">
         {k}
         <span on:click={() => onRemove(k)}>✖</span>
       </div>
@@ -208,13 +240,28 @@
     <button {disabled} style="border-top: none" on:click={onNew} >add new pdac</button>
 
     <div class="bright pb1 mb1 mt2 bb1-solid">Visual</div>
-    <input class="mt1 mb04" type="text" placeholder="title" bind:value={vizTitle} />
-    <input class="mb04" type="text" placeholder="message" bind:value={vizMessage} />
+    <!-- <input class="mt1 mb0-4" type="text" placeholder="title" bind:value={vizTitle} /> -->
+
+    <div class="select flex mb0-4">
+      <select bind:value={vizTitle} class="b1-solid flex grow">
+        <option value="none" name="none">none</option>
+        {#each emotions as e}
+          <option value={e} name={e}>{e}</option>
+        {/each}
+      </select>
+    </div>
+    <input class="mb0-4" type="text" placeholder="message" bind:value={vizMessage} />
     <button class="mb1" on:click={sendAll} >send to all</button>
+    <div class="bright pb1 mb1 mt2 bb1-solid">Test</div>
+    <input type="range" bind:value={speed} min="10" max="1000" />
+    <button class="mt1" on:click={ onLoopie } class:filled={loopie}>flash all</button>
 
     <div class="bright pb1 mb1 mt2 bb1-solid">Actions</div>
-    <button class="mt1" on:click={ e => osc = !osc } class:filled={osc}>send test osc to av</button>
-    <button class="mt04" on:click={ rebootAll }>reboot all</button>
-    <button class="mt04" on:click={ shutdownAll }>shutdown all</button>
+    <button class="mt1" on:click={ e => osc = !osc } class:filled={osc}>test osc to av</button>
+    <button class="mt0-4" on:click={ rebootAll }>reboot all</button>
+    <button class="mt0-4" on:click={ shutdownAll }>shutdown all</button>
+
+
+
   </div>
 </nav>

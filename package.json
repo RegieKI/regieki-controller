@@ -1,7 +1,7 @@
 {
-  "name": "PDACs-v1.1",
-  "version": "0.0.1",
-  "description": "PDAC Manager",
+  "name": "PDACs",
+  "version": "1.2.2",
+  "description": "PDAC Manager - Monday 7th Version",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,12 +10,11 @@
     "start": "nvm use v14.15.0 && electron .",
     "start:dev": "concurrently \"npm run autobuild\" \"ELECTRON_RELOAD=yes electron .\"",
     "start:browser": "concurrently \"npm run autobuild\" \"browser-sync public -w --no-ghost-mode\"",
-    "package": "electron-packager . --out=dist PDACs --ignore=rollup.config.js --ignore=.gitignore --overwrite"
+    "package": "electron-packager . --out=dist $npm_package_name-$npm_package_version --ignore=rollup.config.js --ignore=.gitignore --overwrite && npm run copy && npm run open",
+    "copy": "cp -rf dist/*/*.app /Applications",
+    "open": "open /Applications/$npm_package_name-$npm_package_version.app"
   },
-  "engines": {
-    "node": "14.15.0"
-  },
-  "author": "Maxim Vasilyev <max-at-work@yandex.ru>",
+  "author": "Gilbert Sinnott <g@sinnott.cc>",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.9.6",

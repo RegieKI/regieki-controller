@@ -27,34 +27,43 @@ function onOscOpen( e ) {
 
 
 <style global lang="sass" >
-@import '../../sassis/sassis.sass'
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200;300;400;500;600;700;800;900&display=swap')
-
-
-
-@import '../../sassis/terminal-theme.sass'
-
-html 
-	+terminal-theme
+@import '../../sassis/src/_index.sass'
 
 html
-	$sidebar: 200px
-	$header: 40px
-	$subheader: 40px
-	.sidebar
-		+bg($bg-alt)
-		+fixed
-		+width-height($sidebar, 100vh)
-		border-right: 1px solid mono(15%)
-	.router
-		+fixed
-		+top-left(0px, $sidebar)
-		+width-height( calc(100% - #{$sidebar}), 100vh)
-		overflow: auto
-		padding: 1em
-	.panel-tree, .panel-diff, .panel-history
-		overflow: auto
-		max-height: calc( 100vh - #{$header + $subheader} )
+	+reset
+	+terminal-structure
+	+terminal-code( false )
+	+shorthand
+	font-family: monospace
+
+	body
+
+		+reset
+		+shorthand
+		+terminal-theme
+		+fontsize( 13px )
+		+bg( hsl( 0,0%,10%) )
+		*, select, input 
+			font-family: monospace
+		$sidebar: 200px
+		$header: 40px
+		$subheader: 40px
+		input, textarea, select
+			padding-left: 0.8em
+			padding-right: 0.8em
+		.sidebar
+			+fixed
+			+width-height($sidebar, 100vh)
+			border-right: 1px solid mono(15%)
+		.router
+			+fixed
+			+top-left(0px, $sidebar)
+			+width-height( calc(100% - #{$sidebar}), 100vh)
+			overflow: auto
+			padding: 1em
+		.panel-tree, .panel-diff, .panel-history
+			overflow: auto
+			max-height: calc( 100vh - #{$header + $subheader} )
 
 
 

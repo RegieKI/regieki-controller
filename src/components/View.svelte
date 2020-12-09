@@ -15,54 +15,64 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
   $: cmds = [ 'ssh pi@' + pdac.ip_address, 'ssh pi@' + pdac.hostname ]
 
   let cmdInput
-  let ws
+  let ws = null
   let status = {
   	type: 'ok',
   	message: 'pending'
   }
 
-  onMount( async () => {
-    const url = `ws://${pdac.ip_address}:8765`
-    console.log('[overview.svelte] 👁 ⚡️  opening websocket...', url)
-    try {
-	    ws = new WebSocket(url);
-	    ws.addEventListener('open', onOpen)
-	    ws.addEventListener('message', onMessage)
-	    ws.addEventListener('error', onError)
-	    ws.addEventListener('close', onClose)
-	    console.log('[View.svelte] 🌐 ✅  websockets created at:', url)
-	    window.callbacks[pdac.hostname] = send;
-	} catch (err) {
-	    console.log('[View.svelte] 🌐 ❌  could not create websockets:', err.message)
 
-	}
+  onMount( async() => {
 
+      console.log('[View.svelte] 📦 mounted...');
+      wsPoll()
 
-  })
+  });
 
-  function onClose(e) {
+  let wsState
 
-    console.log('[View.svelte] 🌐 🛑  websockets closed:', e)
-    status = {
-    	type: 'error',
-    	message: 'closed' + ((e.wasClean) ? ' (clean)' : ' (error)')
+  function wsPoll() {
+    if (!ws) {
+      wsConnect()
+    } else if (ws.readyState == ws.CLOSED) {
+      console.log('[View.svelte] 👁 🛑  remove CLOSED websocket...');
+      ws = null
+      window.callbacks[pdac.ip_address] = null
     }
-    trigger = Math.random()
+
+    if (ws) wsState = ws.readyState
+
+    setTimeout( () => {
+      wsPoll()
+    }, 2000)
+  }
+
+  function wsConnect() {
+    if (!ws) {
+      const url = `ws://${pdac.ip_address}:8765`
+      console.log('[View.svelte] 👁 ⚡️  opening websocket...', url)
+      ws = new WebSocket(url);
+      ws.addEventListener('open', onOpen)
+      ws.addEventListener('message', onMessage)
+      ws.addEventListener('error', onError)
+      ws.addEventListener('close', onClose)
+      window.callbacks[pdac.ip_address] = ws
+    }
   }
 
   function onOpen(e) {
-    console.log('[View.svelte] 🌐 ✅  websockets opened:', e)
-    status = {
-    	type: 'success',
-    	message: e.currentTarget.url
-    }
+    console.log('[View.svelte] 👁 ✅  opened websocket...', e.currentTarget.url)
   }
+  function onError(err) {
+    console.log('[View.svelte] 👁 ❌  error with websocket...', err)
+    ws.close()
+  }
+  function onClose(err) {
+    console.log('[View.svelte] 👁 🛑  closed and delete websockets...')
+  }
+
   function onMessage(e) {
-    console.log('[View.svelte] 🌐 ✨  websockets msg')
-  }
-  function onError(e) {
-  	
-    console.log('[View.svelte] 🌐 ❌  websockets error:', e, e.type)
+    console.log(`[View.svelte] ${pdac.ip_address} ------> 👁 ✨  received websocket message...\n------------\n`, e.data, '\n------------\n')
   }
 
 
@@ -104,7 +114,10 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
   	document.execCommand('copy')
   }
 
-  let vizTitle, vizMessage
+  let vizOpts = [ 'none', 'liebe', 'trauer', 'wut', 'freude', 'uberraschung', 'verachtung', 'angst' ]
+  let vizTitle = 'none'
+  let vizMessage = ''
+  let vizButton = ''
 
   export function send( json ) {
 
@@ -122,7 +135,12 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
   function viz() {
 
     if ( ws ) {
-    	send( { title: vizTitle || '~', message: vizMessage || '~', type: API_VIZ } )
+    	let msg = { 
+    		title: vizTitle || '~', 
+    		message: vizMessage || '~', 
+    		type: "viz" }
+    	if (vizButton && vizButton != '') msg.button = vizButton
+    	send( msg )
     } else {
 	    console.log('[View.svelte] 🌐 ❌  websockets doesnt exist?')
     }
@@ -132,6 +150,7 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 <style lang="sass">
 .view
 	flex-grow: 0
+	max-width: 480px
 	.cross
 		width: 480px
 		height: 320px
@@ -152,14 +171,7 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 </style>
 
 
-<div class="view flex flex-column m04">
-	<div class="bright mb04 flex justify-between">
-		<div>{pdac.hostname}</div>
-		<div>{pdac.ip_address}</div>
-	</div>
-	<div class="mb08 flex {status.type}">
-		{status.message}
-	</div>
+<div class="view flex flex-column m0-4">
 	<div class="cross relative">
 		<svg viewBox="0 0 480 320" class="absolute">
 			<line x1="0" y1="0" x2="480" y2="320" />
@@ -167,10 +179,18 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 		</svg>
 		{#if !refreshing} <iframe allowtransparency="true" class="iframe" {src} /> {/if}
 	</div>
-	<div class="flex flex-row justify-between align-center mt08">
+
+  <div class="bright mt0-4 flex justify-content-between">
+    <div>{pdac.hostname}</div>
+    <div>{pdac.ip_address}</div>
+    <!-- <div class=" {status.type}">{status.message}</div> -->
+  </div>
+
+
+	<div class="flex flex-row justify-content-between align-center mt0-8">
 		<div class="flex flex-row">
 			<button 
-				class="mr08" 
+				class="mr0-8" 
 				on:mousedown={e => { trigger = Math.random()} }
 				>refresh</button>
 			<button on:click={ reboot }>reboot</button>
@@ -180,7 +200,7 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 			<div class="select relative" style="overflow-hidden">
 				<input bind:this={cmdInput} type="text" style="position:absolute;left:-9999px;top:-9999px" />
 				<button class="pr2">Copy</button>
-				<select class="absolute invisible" style="right:0;top:0" on:change={copy}>
+				<select class=" b1-solid absolute invisible" style="right:0;top:0" on:change={copy}>
 					<option value="copy">copy</option>
 					{#each cmds as cmd}
 						<option value={cmd}>{cmd}</option>
@@ -192,14 +212,21 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 
 
 
-	<div class="flex flex-row justify-between align-center mt08">
-		<div class="flex flex-row">
+	<div class="flex flex-row justify-between align-center mt0-8">
+        <div class="flex flex-row">
 
-			<input class="mr08" type="text" bind:value={vizTitle} placeholder="title" />
-			<input type="text" bind:value={vizMessage} placeholder="message" />
-		</div>
-		<div>
-			<button on:click={ viz }>send</button>
-		</div>
+          <!-- <input class="mr08" type="text" bind:value={vizTitle} placeholder="title" /> -->
+        <div class="no-basis select shrink">
+          <select class="b1-solid " bind:value={vizTitle} placeholder="title">
+            {#each vizOpts as o}
+              <option value={o} name={o}>{o}</option>
+            {/each}
+          </select>
+        </div>
+        <input style="width:150px" type="text" bind:value={vizMessage} placeholder="message" class="no-basis shrink" />
+        <input style="width:150px" type="text" class="no-basis shrink" bind:value={vizButton} placeholder="button" />
+        <button class="no-basis" on:click={ viz }>send</button>
+      </div>
+			<!-- <div class="info">websockets connecting...</div> -->
 	</div>
 </div>
