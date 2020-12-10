@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
-import templates from './types-db.js'
+import templates from './types-db.js' 
+
 
 function createStore() {
   const { subscribe, set, update } = writable( templates.db );
@@ -26,9 +27,8 @@ function createStore() {
       .send('getDB')
       .then((db, e) => {
           const j = JSON.parse(db);
-          console.log('[store-db.js] ✅💾 loaded db:', j)
-          j.state = 1;
-          set( j );
+          console.log('[store-db.js] ✅💾 loaded db TODO - RETURN TO ORIGINAL STATE:', templates.db?.mode, templates.db )
+          set( JSON.parse( JSON.stringify( templates.db ) ) ); // TODO RETURN THIS!!!
       })
       .catch((err) => {
         console.log('[store-db.js] ❌💾 error loading db:', err.message)

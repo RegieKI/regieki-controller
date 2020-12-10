@@ -5,6 +5,7 @@
   import template from '@/types-db.js'
   import axios from 'axios'
   import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
+  import DirectorMenu from '@/director/Menu.svelte'
 
 
   const emotions = [
@@ -230,7 +231,8 @@
       background: white
       min-width: 1em
 </style>
-
+  
+  <DirectorMenu />
   <div class="pdacs mb1">
     {#each Object.keys( $db.pdacs ) as k}
       <div class="mb0-4">

@@ -6,18 +6,96 @@ const fs = require( 'fs' );
 const templates = require('./src/types-db.js')
 const expandHomeDir = require('expand-home-dir')
 const contextMenu = require('electron-context-menu');
-
+const { db } = require('./src/types-db.js')
+const websocket = require( 'websocket' )
 const { Client } = require('node-osc')
-const osc = new Client('10.0.8.201', 7777 );
+const http = require('http');
 
-promiseIpc.on('sendOSC', (args) => {
-  // console.log('[electron-app.js] 🎷 ✨  sending osc:', args.path, args.message );
+
+let oscClients = {}
+
+let testServers = {}
+
+
+console.log('-------------------------------------------------------')
+
+Object.keys( db.dests ).forEach( name => {
+  const dest = db.dests[name]
+  console.log('------->', dest)
+  if (dest.type == 'osc') {
+
+  } else if (dest.type == 'sockets') {
+
+    console.log('-------> SOCKETS')
+    try {
+          const server = http.createServer( function(req, res) {
+            console.log((new Date()) + ' received test websockets request for ' + req.url);
+            res.writeHead(404);
+            res.end();
+          })
+
+          testServers[name] = new websocket.server( {
+            httpServer: server,
+            autoAcceptConnections: true
+          })
+          const port = dest.test.split(':')[1]
+          console.log('-------> PORT', port)
+          server.listen(port, function() {
+              console.log((new Date()) + ' test server is listening on port 8080');
+          })
+
+
+          testServers[name].on('request', function(req) {
+
+            connection.on('message', function(message) {
+                if (message.type === 'utf8') {
+                    console.log('Received Message: ' + message.utf8Data);
+                    connection.sendUTF(message.utf8Data);
+                }
+                else if (message.type === 'binary') {
+                    console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+                    connection.sendBytes(message.binaryData);
+                }
+            });
+            connection.on('close', function(reasonCode, description) {
+                console.log((new Date()) + ' test peer ' + connection.remoteAddress + ' disconnected.');
+            });
+          })
+    } catch( err ) {
+      console.log('❌  error creating test server', err.message)
+    }
+  }
+})
+
+promiseIpc.on('oscClientConnect', args => {
+
+  console.log('[electron-app.js] 🎷 ✨  connecting osc...', args.url );
 
   return new Promise( (resolve, reject) => {
-    osc.send( args.path, args.message, (err) => {
-      if (err) return reject(err)
-      return resolve( {} )
-    })
+    try {
+      const u = args.url.split(":")
+      oscClients[ args.url ] = new Client( u[0], u[1] )
+      resolve( )
+      console.log('[electron-app.js] 🎷 ✨ ✅  success connecting osc:', args.url );
+    } catch( err ) {
+      console.log('[electron-app.js] 🎷 ✨ ❌  error connecting osc:', err.message );
+      reject(err.message)
+    }
+  })
+});
+
+promiseIpc.on('oscClientSend', (args) => {
+  console.log('[electron-app.js] 🎷 ✨  sending osc:', args.url, args.path, args.message );
+
+  return new Promise( (resolve, reject) => {
+    try {
+      oscClients[args.url].send( args.path, args.message, (err) => {
+        if (err) return reject(err)
+        return resolve( )
+      })
+    } catch( err ) {
+      reject( err.message )
+    }
   })
 });
 
@@ -138,14 +216,14 @@ promiseIpc.on('clearCache', (args) => {
 });
 
 promiseIpc.on('getDB', args => {
-  const p = path.join(__dirname, `./bin/db.json`);
+  const p = path.join(app.getPath('home'), `./pdacs-db.json`);
   console.log('[electron-app.js] 👋 🚚  getDB', p)
   return readFileSync( p, templates.db );
 });
 
 
 promiseIpc.on('setDB', (args) => {
-  const p = path.join(__dirname, `./bin/db.json`);
+  const p = path.join(app.getPath('home'), `./pdacs-db.json`);
   const j =  JSON.stringify( args, null, 2 );
   console.log('[electron-app.js] 👋 🚚  setDB', p)
   return fsp.writeFile(p, j, 'utf8');
