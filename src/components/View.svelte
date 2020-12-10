@@ -21,58 +21,20 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
   	message: 'pending'
   }
 
+  window.callbacks = {}
 
   onMount( async() => {
 
       console.log('[View.svelte] 📦 mounted...');
-      wsPoll()
+      
+      window.callbacks[pdac.ip_address] = send
 
   });
 
-  let wsState
+  function onDomReady(e) {
 
-  function wsPoll() {
-    if (!ws) {
-      wsConnect()
-    } else if (ws.readyState == ws.CLOSED) {
-      console.log('[View.svelte] 👁 🛑  remove CLOSED websocket...');
-      ws = null
-      window.callbacks[pdac.ip_address] = null
-    }
+     // if (pdac.ip_address == '10.0.8.210') webview.openDevTools()
 
-    if (ws) wsState = ws.readyState
-
-    setTimeout( () => {
-      wsPoll()
-    }, 2000)
-  }
-
-  function wsConnect() {
-    if (!ws) {
-      const url = `ws://${pdac.ip_address}:8765`
-      console.log('[View.svelte] 👁 ⚡️  opening websocket...', url)
-      ws = new WebSocket(url);
-      ws.addEventListener('open', onOpen)
-      ws.addEventListener('message', onMessage)
-      ws.addEventListener('error', onError)
-      ws.addEventListener('close', onClose)
-      window.callbacks[pdac.ip_address] = ws
-    }
-  }
-
-  function onOpen(e) {
-    console.log('[View.svelte] 👁 ✅  opened websocket...', e.currentTarget.url)
-  }
-  function onError(err) {
-    console.log('[View.svelte] 👁 ❌  error with websocket...', err)
-    ws.close()
-  }
-  function onClose(err) {
-    console.log('[View.svelte] 👁 🛑  closed and delete websockets...')
-  }
-
-  function onMessage(e) {
-    console.log(`[View.svelte] ${pdac.ip_address} ------> 👁 ✨  received websocket message...\n------------\n`, e.data, '\n------------\n')
   }
 
 
@@ -121,30 +83,28 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 
   export function send( json ) {
 
-    console.log('[View.svelte] 🌐  sending websockets...')
-    try {
-    	const txt = JSON.stringify( json )
-	    ws.send( txt )
-	    console.log('[View.svelte] 🌐 ✅  successfully sent message:', txt)
-	} catch( err ) {
-	    console.log('[View.svelte] 🌐 ❌  couldnt send websockets msg:', err.message)
+    const txt = JSON.stringify( json )
+    const msg = `window.safelySend('${txt}')`
+    if (!webview) return
+    webview.executeJavaScript( msg ).then( res => {
 
-	}
+    }).catch( err => {
+      console.error(err.message)
+    })
+
   }
 
   function viz() {
 
-    if ( ws ) {
-    	let msg = { 
-    		title: vizTitle || '~', 
-    		message: vizMessage || '~', 
-    		type: "viz" }
-    	if (vizButton && vizButton != '') msg.button = vizButton
-    	send( msg )
-    } else {
-	    console.log('[View.svelte] 🌐 ❌  websockets doesnt exist?')
-    }
+  	let msg = { 
+  		title: vizTitle || '~', 
+  		message: vizMessage || '~', 
+  		type: "viz" }
+  	if (vizButton && vizButton != '') msg.button = vizButton
+  	send( msg )
   }
+
+  let webview
 </script>
 
 <style lang="sass">
@@ -177,7 +137,7 @@ import { API_ERROR, API_SUCCESS, API_TRY, API_VIZ } from '@/types.js'
 			<line x1="0" y1="0" x2="480" y2="320" />
 			<line x1="480" y1="0" x2="0" y2="320" />ssh pi@10.0.8.207
 		</svg>
-		{#if !refreshing} <iframe allowtransparency="true" class="iframe" {src} /> {/if}
+		{#if !refreshing} <webview on:dom-ready={onDomReady} bind:this={webview} allowtransparency="true" class="iframe" {src} /> {/if}
 	</div>
 
   <div class="bright mt0-4 flex justify-content-between">

@@ -1,6 +1,9 @@
 <script lang="ts">
-import Router from 'svelte-hash-router'
-import Sidebar from './components/Sidebar.svelte'
+import Director from '@/director/Director.svelte'
+import DirectorMenu from '@/director/Menu.svelte'
+import Overview from '@/components/Overview.svelte'
+import PDACMenu from '@/components/Sidebar.svelte'
+import Sidebar from '@/components/Sidebar.svelte'
 import { onMount } from 'svelte';
 import { db } from '@/store-db.js'
 
@@ -16,12 +19,29 @@ function onOscOpen( e ) {
 	// console.log('OSC OPENEED!')
 }
 
+let mode = 'director'
+
 </script>
 
 
 {#if $db.state > 0}
-	<Sidebar /> 
-	<div class="router"><Router /></div>
+
+	<nav class="vh100 overflow-auto sidebar p1 flex flex-column justify-between">
+	  <h2 class:filled={ mode == 'director' } on:click={ e => mode = 'director' } class="mb1 pb1 bright f2">Direktor</h2>
+	  <h2 class:filled={ mode == 'manager' } on:click={ e => mode = 'manager' } class="mb1 pb1 bright f2">PDACs</h2>
+		{#if mode == 'director'}
+			<DirectorMenu />
+		{:else if mode == 'manager'}
+			<PDACMenu />
+		{/if}
+	</nav>
+	<div class="router">
+		{#if mode == 'director'}
+			<Director />
+		{:else if mode == 'manager'}
+			<Overview />
+		{/if}
+	</div>
 {/if}
 
 
@@ -41,7 +61,7 @@ html
 		+reset
 		+shorthand
 		+terminal-theme
-		+fontsize( 13px )
+		+fontsize( 11px )
 		+bg( hsl( 0,0%,10%) )
 		*, select, input 
 			font-family: monospace

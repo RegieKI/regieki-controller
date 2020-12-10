@@ -101,3 +101,9 @@ function createStore() {
 }
 
 export const db = createStore();
+
+export const mega = writable( {
+  config: {
+    dests: []
+  }
+} ) 

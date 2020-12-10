@@ -231,7 +231,9 @@
       min-width: 1em
 </style>
 
+<nav class="vh100 overflow-auto sidebar p1 flex flex-column justify-between">
   <div class="pdacs mb1">
+    <h2 class="mb1 pb1 bright bb1-solid f2">PDAC Manager</h2>
     {#each Object.keys( $db.pdacs ) as k}
       <div class="mb0-4">
         {k}
@@ -272,3 +274,4 @@
 
 
   </div>
+</nav>

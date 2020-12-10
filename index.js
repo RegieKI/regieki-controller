@@ -38,6 +38,7 @@ function createWindow () {
 		width: 800,
 		height: 600,
 		webPreferences: {
+      webviewTag: true,
 			nodeIntegration: true,
 			preload: path.join(__dirname, "/preload.js")
 		},
@@ -45,7 +46,7 @@ function createWindow () {
 	});
 
 	mainWindow.loadFile('public/index.html');
-	mainWindow.webContents.openDevTools({ mode: 'detach' });
+	// mainWindow.webContents.openDevTools({ mode: 'detach' });
 
 	mainWindow.on('closed', function () {
 		mainWindow = null
