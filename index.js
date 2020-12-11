@@ -8,25 +8,35 @@ const expandHomeDir = require('expand-home-dir')
 const contextMenu = require('electron-context-menu');
 const { db } = require('./src/types-db.js')
 const websocket = require( 'websocket' )
-const { Client } = require('node-osc')
+const { Client, Server } = require('node-osc')
 const http = require('http');
 
 
 let oscClients = {}
-
-let testServers = {}
+let testWebsocketServers = {}
+let testOscServers = {}
 
 
 console.log('-------------------------------------------------------')
 
 Object.keys( db.dests ).forEach( name => {
   const dest = db.dests[name]
-  console.log('------->', dest)
   if (dest.type == 'osc') {
 
+    const port = parseInt(dest.test.split(':')[1])
+    const address = dest.test.split(':')[0]
+
+    console.log('-------> TEST:OSC ', address, port)
+
+    testOscServers[name] = new Server(port, address, () => {
+      console.log('OSC Server is listening');
+    })
+     
+    testOscServers[name].on('message', function (msg) {
+      console.log(`-------> TEST:OSC ✅ received: ${msg}`);
+    });
   } else if (dest.type == 'sockets') {
 
-    console.log('-------> SOCKETS')
     try {
           const server = http.createServer( function(req, res) {
             console.log((new Date()) + ' received test websockets request for ' + req.url);
@@ -34,22 +44,22 @@ Object.keys( db.dests ).forEach( name => {
             res.end();
           })
 
-          testServers[name] = new websocket.server( {
+          testWebsocketServers[name] = new websocket.server( {
             httpServer: server,
             autoAcceptConnections: true
           })
           const port = dest.test.split(':')[1]
-          console.log('-------> PORT', port)
+          console.log('-------> TEST:SOCKETS', port)
           server.listen(port, function() {
               console.log((new Date()) + ' test server is listening on port 8080');
           })
 
 
-          testServers[name].on('request', function(req) {
+          testWebsocketServers[name].on('request', function(req) {
 
             connection.on('message', function(message) {
                 if (message.type === 'utf8') {
-                    console.log('Received Message: ' + message.utf8Data);
+                    console.log('-------> TEST:SOCKETS ✅ received', message.utf8Data)
                     connection.sendUTF(message.utf8Data);
                 }
                 else if (message.type === 'binary') {
@@ -85,15 +95,20 @@ promiseIpc.on('oscClientConnect', args => {
 });
 
 promiseIpc.on('oscClientSend', (args) => {
-  console.log('[electron-app.js] 🎷 ✨  sending osc:', args.url, args.path, args.message );
+  console.log('[electron-app.js] -----> 🎷  sending osc:', args.url, args.path, args.value );
 
   return new Promise( (resolve, reject) => {
     try {
-      oscClients[args.url].send( args.path, args.message, (err) => {
-        if (err) return reject(err)
+      oscClients[ args.url ].send( args.path, args.value, (err) => {
+        if (err) {
+          console.log('[electron-app.js] -----> 🎷 ❌  sending osc error', err.message )
+          return reject(err)
+        }
+        console.log('[electron-app.js] -----> 🎷 ✅  sending osc success' )
         return resolve( )
       })
     } catch( err ) {
+      console.log('[electron-app.js] -----> 🎷 ❌  sending osc error', err.message )
       reject( err.message )
     }
   })

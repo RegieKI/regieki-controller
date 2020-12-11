@@ -64,7 +64,7 @@ module.exports = {
 				url: '10.0.8.210:8765',
 				test: 'localhost:8210',
 				cmds: [ 
-					{ url: 'type', value: '', opts: [ "wait", "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
+					{ url: 'title', value: '', opts: [ "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
 				]
 			},
 			"pdac-stage-02": {
@@ -73,7 +73,7 @@ module.exports = {
 				url: '10.0.8.211:8765',
 				test: 'localhost:8211',
 				cmds: [ 
-					{ url: 'type', value: '', opts: [ "wait", "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
+					{ url: 'title', value: '', opts: [ "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
 				]
 			},
 			"pdac-stage-03": {
@@ -82,7 +82,7 @@ module.exports = {
 				url: '10.0.8.212:8765',
 				test: 'localhost:8212',
 				cmds: [ 
-					{ url: 'type', value: '', opts: [ "wait", "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
+					{ url: 'title', value: '', opts: [ "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
 				]
 			},
 			"pdac-stage-04": {
@@ -91,7 +91,7 @@ module.exports = {
 				url: '10.0.8.213:8765',
 				test: 'localhost:8213',
 				cmds: [ 
-					{ url: 'type', value: '', opts: [ "wait", "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
+					{ url: 'title', value: '', opts: [ "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
 				]
 			},
 			"pdac-stage-05": {
@@ -100,7 +100,7 @@ module.exports = {
 				url: '10.0.8.214:8765',
 				test: 'localhost:8214',
 				cmds: [ 
-					{ url: 'type', value: '', opts: [ "wait", "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
+					{ url: 'title', value: '', opts: [ "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
 				]
 			}
 		}
