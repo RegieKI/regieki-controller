@@ -10,5 +10,5 @@ function switchMode( s ) {
 }
 
 </script>
-<h2 class:filled={ mode == 'director' } on:click={ e => switchMode('director') } class="p0-4 bright f2">Timeline</h2>
-<h2 class:filled={ mode == 'manager' } on:click={ e => switchMode('manager') } class="p0-4 bright f2">PDACs</h2>
+<button class:filled={ mode == 'director' } on:click={ e => switchMode('director') } class="p0-4 bright">Timeline</button>
+<button class:filled={ mode == 'manager' } on:click={ e => switchMode('manager') } class="p0-4 bright">PDACs</button>

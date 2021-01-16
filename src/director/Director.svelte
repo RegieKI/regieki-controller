@@ -6,34 +6,41 @@
 	import frieder from '../frieder.js'
 	import DirectorMenu from '@/director/Menu.svelte'
 
-	let data = {}
+	let data = [] // the actual data (array of objects)
+	window.data = data
+  	let buttoned = {} // pdac button states
+  	let connected = {} // device status
+  	let sockets = {} // websocket destinations
 
-  	let buttoned = {} // pdac button presses
-  	let connected = {} // bool for each dest
-  	let sockets = {} // ws destinations
 
+	let init_list = [ 
+		{ type: 'gui', cmds: [ 
+			{ url: 'play', value: '' }, 
+			{ url: 'order', value: '' },
+			{ url: 'delete', value: '' }
+		], name: 'gui' },
 
-	let TEST = true
-
-	let rows = 360;
-	let cols = [ 
-		{ type: 'timestamp', cmds: [], name: 'timestamp' },
-		{ type: 'gui', cmds: [], name: 'gui' },
-		{ type: 'internal', cmds: [{ url: 'condition', value: '' }], name: 'internal' },
-		{ ...$db.dests["audio-machine"]},
-		{ ...$db.dests["av-machine"]},
-		{ ...$db.dests["ai-machine"]},
-		{ name: 'pdacs-all', type: 'internal', cmds: [ { url: 'visualise', value: '', opts: ['wait','act','button', 'text'] }, { url: 'time', value: 0 } ] },
-		{ ...$db.dests["pdac-stage-01"] },
-		{ ...$db.dests["pdac-stage-02"] },
-		{ ...$db.dests["pdac-stage-03"] },
-		{ ...$db.dests["pdac-stage-04"] },
-		{ ...$db.dests["pdac-stage-05"] },
-		{ type: 'gui', cmds: [] },
-		{ type: 'timestamp', cmds: [], name: 'timestamp' }
+		{ ...$db.servers['regieki'] },
+		{ ...$db.servers['audio-machine'] },
+		{ ...$db.servers['av-machine']}
 	]
+	let test_port = 8210
+	for (const [key, pdac] of Object.entries($db.pdacs)) {
+		const o = {
+			type: 'sockets',
+			name: key,
+			url: pdac.ip_address + ':8765',
+			test: `localhost:8765`,
+			cmds: [ 
+				{ url: 'emotion', value: '', opts: [ "angst", "freude", "liebe", "trauer", "uberraschung", "verachtung", "wut" ] }
+			]
+		}
+		init_list.push( o )
+	}
+	let cols = init_list
 
-	let destCopy = $db.dests
+	let clients = $db.clients
+	let servers = $db.servers
 
   	let ready = false
 
@@ -85,53 +92,54 @@
 	onMount(async () => {
 
 		db.load().then( e => {
-			for ( let i = 0; i < rows; i++)  {
-				let ii = 0
-				for( let c = 0; c < cols.length; c++) {
-					const cmds = cols[c]?.cmds
-					const len = cmds?.length || 0
-					for( let cc = 0; cc < len; cc++) {
-						if (!data[i]) data[i] = {}
-						cmds[cc].idx = ii
-						ii += 1
-					}
-				}
-			}
+			// for ( let i = 0; i < rows; i++)  {
+			// 	let ii = 0
+			// 	for( let c = 0; c < cols.length; c++) {
+			// 		const cmds = cols[c]?.cmds
+			// 		const len = cmds?.length || 0
+			// 		for( let cc = 0; cc < len; cc++) {
+			// 			if (!data[i]) data[i] = {}
+			// 			cmds[cc].idx = ii
+			// 			ii += 1
+			// 		}
+			// 	}
+			// }
 
 
 
-			if (doFrieder) {
-				frieder.forEach( (p, i) => {
-					const k = p[0]
-					const v = p[1]
-					if ( v == '' ) {
-						data[i][1]= k
-					} else if ( k == '/scenes') {
-						data[i][2]= v
-					} else if (k == '/tracks') {
-						data[i][3]= v
-					}
-				})
+			// if (doFrieder) {
+			// 	frieder.forEach( (p, i) => {
+			// 		const k = p[0]
+			// 		const v = p[1]
+			// 		if ( v == '' ) {
+			// 			data[i][1]= k
+			// 		} else if ( k == '/scenes') {
+			// 			data[i][2]= v
+			// 		} else if (k == '/tracks') {
+			// 			data[i][3]= v
+			// 		}
+			// 	})
 
-			}
+			// }
 
-			if ( doRandomPDAC ) {
-				const len = Object.keys( $db.pdacs ).length
-				log('---> generating random pdac emotions:', rows, $db.pdacs.length)
-				for ( let i = 0; i < rows; i++)  {
+			// if ( doRandomPDAC ) {
+			// 	const len = Object.keys( $db.pdacs ).length
+			// 	log('---> generating random pdac emotions:', rows, $db.pdacs.length)
+			// 	for ( let i = 0; i < rows; i++)  {
 
-					data[i][8] = ['act', 'wait', 'button'][ parseInt( Math.random() * 3 ) ]
-					data[i][9] = 10
-					for ( let ii = 0; ii < len; ii++ ) {
-						const idx = ii + 10
-						const emo = emotions[ parseInt( Math.random() *  ( emotions.length + 2 ) ) ] || ''
-						data[i][idx] = emo
-					}
-				}
-			}
+			// 		data[i][8] = ['act', 'wait', 'button'][ parseInt( Math.random() * 3 ) ]
+			// 		data[i][9] = 10
+			// 		for ( let ii = 0; ii < len; ii++ ) {
+			// 			const idx = ii + 10
+			// 			const emo = emotions[ parseInt( Math.random() *  ( emotions.length + 2 ) ) ] || ''
+			// 			data[i][idx] = emo
+			// 		}
+			// 	}
+			// }
 
 			Object.keys( $db.pdacs ).forEach( p => buttoned[p] = false )
-			Object.keys( $db.dests ).forEach( p => { if (p.type != 'off' ) connected[p] = 0 } )
+			Object.keys( $db.clients ).forEach( p => { if (p.type != 'off' ) connected[p] = 0 } )
+
 			window.connected = connected
 			window.buttoned = buttoned
 
@@ -141,15 +149,17 @@
 
 		lt = new Date()
 		window.requestAnimationFrame( onFrame )
-
 		pollConnections()
 	})
 
 	function pollConnections() {
 
+
+		// auto-reconnects to devices
+
 		Object.keys( connected ).forEach( name => {
-			const dest = $db.dests[name]
-			const url = TEST ? dest.test : dest.url
+			const dest = $db.clients[name]
+			const url = $db.production ? dest.url : dest.test
 			if ( connected[name] != 1 && dest.type != 'off' ) {
 
 				log('🚠  reconnecting to...', name, url)
@@ -272,14 +282,14 @@
 
 				try {
 
-					log('🦾 processing line:', name, fun.dest[ TEST ? 'test' : 'url'], fun.item.url, cell)
+					log('🦾 processing line:', name, fun.dest[ $db.production ? 'url' : 'test'], fun.item.url, cell)
 
 					if (fun.dest.type == 'osc') {
 
 						const msg = fun.item.url + cell
 						const path = msg.split(' ')[0]
 						const value = msg.split(' ')[1] || '';
-						const url = fun.dest[ TEST ? 'test' : 'url']
+						const url = fun.dest[ $db.production ? 'url' : 'test']
 						const obj = { url, path, value }
 						log('⚡️-----> sending osc:', url, path, value)
 
@@ -338,6 +348,13 @@
 
 
 	function saveDB() {
+
+		db.update( d => {
+			d.clients = clients
+			d.data = data
+			return d
+		})
+		console.log($db.production)
 		db.save()
 	}
 
@@ -349,9 +366,36 @@
 		if (!obj) return false
 		return Array.isArray( obj )
 	}
+
+	function onAddRow() {
+		let o = []
+		cols.forEach (col => col.cmds.forEach( cmd => {
+			o.push( {
+				cmd: cmd,
+				value: null
+			})
+		}))
+		data.push( o )
+		console.log('added row', o)
+	}
+
+
+	function toggleProduction() {
+		db.update( d => {
+			d.production = !d.production
+			return d
+		})
+
+  		for (const [key, value] of Object.entries(connected)) connected[key] = 0
+	}
+
+
 </script>
 
 <style lang="sass">
+table
+	th, td, th div, td div
+		white-space: nowrap
 tbody
 	td, tr
 		max-height: 30px
@@ -371,21 +415,29 @@ tbody
 
 <nav class="br1-solid vh100 overflow-auto sidebar p1 flex flex-column justify-between">
 	<DirectorMenu />
-	<div class="p1">
+	<div class="pt1">
 
 		<!-------------------------------------------------------------------------------------->
 
 		<div class="mb1  cmb0-2">
-			<div class="mb1 pb1 bb1-solid bright">Connections</div>
-			{#if isArray( Object.keys( destCopy ) ) }
-				{#each Object.keys( destCopy ) as name }
-					<div class="flex justify-content-between"><div>{name}</div><div class="fade">{destCopy[name].type}</div></div>
-					<input type="text" bind:value={ destCopy[name][ TEST ? 'test' : 'url'] } placeholder="url" />
-					<div 
-						class:ok={ connected[name] == 0}
-						class:success={ connected[name] == 1}
-						class:error={ connected[name] == 2}>
-						{ ( destCopy[name].type == 'off' ) ? 'disabled' : ( statuses[connected[name]] || 'initialising' ) }
+			<div class="mb1 pb1 bb1-solid bright flex justify-content-between">
+				<div>Connections</div>
+				<button class:filled={$db.production} on:click={toggleProduction}>PRODUCTION</button>
+			</div>
+			{#if isArray( Object.keys( clients ) ) }
+				{#each Object.keys( clients ) as name }
+					<div class="flex justify-content-between">
+						<div class="">{name}</div>
+						<div>{clients[name].type}</div>
+					</div>
+					<div class="flex justify-content-between"
+							class:ok={ connected[name] == 0}
+							class:success={ connected[name] == 1}
+							class:error={ connected[name] == 2}>
+						<div>{ clients[name][ $db.production ? 'url' : 'test'] }</div>
+						<div >
+							{ ( clients[name].type == 'off' ) ? 'disabled' : ( statuses[connected[name]] || 'disabled' ) }
+						</div>
 					</div>
 				{/each}
 			{:else} NOT ARRAY {/if}
@@ -410,8 +462,8 @@ tbody
 		</div>
 
 		<!-------------------------------------------------------------------------------------->
-		<div class="fx fx-column">
-			<button class="flex grow j-c-center" on:click={saveDB}>save</button>
+		<div class="pt2">
+			<button class="w100pc grow p0-4" on:click={saveDB}>save database</button>
 		</div>
 	</div>
 
@@ -444,17 +496,12 @@ tbody
 				<tr>
 					{#if isArray( cols ) }
 						{#each cols as c}
-							<th class="sticky z99 t0 h2em bg" colspan={ c.cmds?.length }>
-								<div class="p0-4">
+							<th class="sticky z96 t0 h2em bg" colspan={ c.cmds?.length }>
+								<div class="p0-4 mlr0-4 bb1-solid">
 									<div class="b1-solid" class:b1-solid={ c.type != 'gui' && c.type != 'timestamp' }>
-										{#if c.type == 'gui'}
-											<PlayIcon on:click={playFromStart} loading={false} className="w1em h1em" {playing} />
-										{:else if c.type == 'timestamp'}
-											~
-										{:else}
-											<span class="bright">{c.name}</span>
-											<span class="fade">({c.type})</span>
-										{/if}
+										<span class="bright">{c.name}</span>
+										<br />
+										<span class="fade">({c.type})</span>
 									</div>
 								</div>
 							</th>
@@ -469,21 +516,18 @@ tbody
 				<tr>
 					{#if isArray( cols ) }
 						{#each cols as c}
-							{#if c.type == 'gui'}
-								<th class="t2-6 sticky z99 bg">
-									<button on:click={ e => awaitOnly = !awaitOnly } class:filled={awaitOnly} class="grow">await</button>
-								</th>
-							{:else if c.type == 'timestamp'}
-								<th class=" t2-6em sticky z99 bg">
-									{timestamp}
-								</th>
-							{:else}
-								{#if isArray( c.cmds ) }
-									{#each c.cmds as cmd}
-										<th class="sticky z99 t2-6 bg"><input type="text" bind:value={cmd.url} /></th>
-									{/each}
-								{:else} NOT ARRAY {/if}
-							{/if}
+							{#if isArray( c.cmds ) }
+								{#each c.cmds as cmd}
+									<th class="sticky z99 t2-6 filled">
+
+										{#if cmd.url == 'play'}
+											<PlayIcon on:click={playFromStart} loading={false} className="w10px h10px" {playing} />
+										{:else if c.name != 'gui' }
+											{cmd.url}
+										{/if}
+									</th>
+								{/each}
+							{:else} NOT ARRAY {/if}
 						{/each}
 					{:else} NOT ARRAY {/if}
 				</tr>
@@ -495,58 +539,59 @@ tbody
 			<!-------------------------------------------------------------------------------------->
 
 
-
+											<!-- ↕ -->
 			<tbody padding="mt1 relative" bind:this={tbody}>
 				<div 
 					class="absolute fill t0 l0 filled w100pc h1px z0" 
 					class:ok={!playing}
 					class:success={playing}
 					style={`transform:translate(0px,${playhead}px)`} />
-				{#if isArray( Array(rows) ) }
-					{#each Array(rows) as n, idx}
-
-
+					{#each data as entry, idx}
 						<tr height="30px">
 							{#if isArray( cols ) }
 								{#each cols as c}
-									{#if c.type == 'gui'}
-
-										<!-------------------------------------------------------------------------------------->
-
-										<td 
-											on:click={e => toggleMegaPlay( idx, (idx == mega && playing) ) } 
-											class="p0-4 m0"
-											class:filled={ idx == mega } 
-											class:alert={ idx == mega && awaitingButtons}
-											class:success={ idx == mega && playing && !awaitingButtons }
-											class:ok={ idx == mega && !playing && !awaitingButtons }>
-											<PlayIcon 
-												style=""
-												loading={false} 
-												className="w1em h1em" 
-												playing={idx == mega && playing} />
-										</td>
-									{:else if c.type == 'timestamp'}
-
-										<!-------------------------------------------------------------------------------------->
-
-										<td 
-											class={`p0-4 t2-99 l2-99 pointer `}
-											on:click={ e => setChunk(idx) } >
-											<div>{ getTimestamp(idx * gap ) }</div>
-										</td>
-									{:else}
-
 										<!-------------------------------------------------------------------------------------->
 
 										{#if isArray( c.cmds ) }
 											{#each c.cmds as cmd, i}
-												<td class="p0-4 m0 strong" >
-													{#if cmd.opts }
-														<div class="select flex" >
+												<td class="strong br1-solid bb1-solid" >
+
+
+													{#if cmd.url == 'play'}
+
+
+														<div 
+															on:click={e => toggleMegaPlay( idx, (idx == mega && playing) ) } 
+															class="p0-4 m0"
+															class:filled={ idx == mega } 
+															class:alert={ idx == mega && awaitingButtons}
+															class:success={ idx == mega && playing && !awaitingButtons }
+															class:ok={ idx == mega && !playing && !awaitingButtons }>
+															<PlayIcon 
+																style=""
+																loading={false} 
+																className="w10px h10px" 
+																playing={idx == mega && playing} />
+														</div>
+													{:else if cmd.url == 'order'}
+
+															<div 
+																class={`p0-4 t2-99 l2-99 pointer `}
+																on:click={ e => setChunk(idx) }>
+																↕
+															</div>
+													{:else if cmd.url == 'delete'}
+
+															<div 
+																class={`p0-4 t2-99 l2-99 pointer `}>
+																X
+															</div>
+
+													{:else if cmd.opts }
+														<div class="select flex grow h100pc" >
 															<select 
-																class={`grow b0-solid ${ data[idx][cmd.idx] }`} 
-																bind:value={ data[idx][cmd.idx] } class:filled={ data[idx][cmd.idx] } >
+																class={` b0-solid ${ entry[c.name+'-'+cmd.name] } pr2`} 
+																bind:value={ entry[c.name+'-'+cmd.name] } class:filled={ entry[c.name+'-'+cmd.name] } >
 																<option></option>
 																<option disabled>---</option>
 																{#each cmd.opts as o}
@@ -556,16 +601,13 @@ tbody
 														</div>
 													{:else}
 														<input 
-															class:filled={ data[idx][cmd.idx] } 
-															class={`b0-solid flex m0 ${ data[idx][cmd.idx] }`} 
-															type="text" bind:value={ data[idx][cmd.idx] } />
+															style={`width:${ typeof(cmd.value) == 'number' ? '60px' : '120px'} `}
+															class={`h100pc b1-solid m0 ${ entry[c.name+'-'+cmd.name] }`} 
+															type="text" bind:value={ entry[c.name+'-'+cmd.name] } />
 													{/if}
 												</td>
 											{/each}
 										{:else} NOT ARRAY {/if}
-
-										<!-------------------------------------------------------------------------------------->
-									{/if}
 								{/each}
 							{:else} NOT ARRAY {/if}
 						</tr>
@@ -573,11 +615,15 @@ tbody
 
 
 					{/each}
-				{:else} NOT ARRAY {/if}
 			</tbody>
 
 
 		</table>
+		<div class="center p1 justify-items-center flex">
+			<button on:click={ onAddRow }>
+				add row
+			</button>
+		</div>
 </div>
 <div class="konsole p1">
 	{#each konsole as k, i}
@@ -586,3 +632,4 @@ tbody
 </div>
 
 {/if}
+

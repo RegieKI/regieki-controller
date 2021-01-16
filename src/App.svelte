@@ -42,7 +42,7 @@ html
 		+bg( hsl( 0,0%,10%) )
 		*, select, input 
 			font-family: monospace
-		$sidebar: 200px
+		$sidebar: 220px
 		$header: 40px
 		$subheader: 40px
 		input, textarea, select
