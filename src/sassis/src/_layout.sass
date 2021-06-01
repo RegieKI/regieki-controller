@@ -1,0 +1,115 @@
+
+
+$screen-sm: 576px
+$screen-md: 768px
+$screen-lg: 922px
+$screen-elg: 1200px
+
+=layout( $spacing: 0em )
+
+
+	.container
+		max-width: 100%
+
+
+	$sizes: ( "sm": $screen-sm, "md": $screen-md, "lg": $screen-lg, "elg": $screen-elg )
+
+	.layout
+		box-sizing: border-box
+		display: flex
+		flex: 0 1 auto
+		flex-direction: row
+		flex-wrap: wrap
+		&.layout-nogutter
+			margin: 0
+			& > .col
+				padding: 0
+			
+	.layout
+		margin: 0 ($spacing * -1) 0 ($spacing * -1)
+	.col
+		padding: 0 $spacing 0 $spacing
+
+
+	.col
+		box-sizing: border-box
+		flex: 0 0 auto
+		flex-grow: 1
+		flex-basis: 0
+		max-width: 100%
+		min-width: 0
+
+
+	@for $i from 1 through 12
+		.col-#{$i}
+			flex-basis: (100% / 12) * $i
+			max-width: (100% / 12) * $i
+
+
+	//////////////////
+	//Media Queries
+	//////////////////
+
+
+
+
+	@each $media, $size in $sizes
+
+		// media = 'sm', size = '576px'
+
+		@media only screen and (min-width: $size)
+			.#{$media}-container
+				max-width: var(--container)
+
+		@each $dir in ( 'min', 'max')
+
+			// dir = 'min'
+
+			.w-#{$media}
+				width: $size
+			.minw-#{$media}
+				min-width: $size
+			.maxw-#{$media}
+				max-width: $size
+			.basis-#{$media}
+				flex-basis: $size
+
+			@media only screen and (#{$dir}-width: $size)
+				.#{$media}-#{$dir}-100
+					width: 100%
+					min-width: 100%
+				.#{$media}-#{$dir}-grow
+					flex-grow: 1
+				.#{$media}-#{$dir}-no-grow
+					flex-grow: 0
+				@each $type in ( 'row', 'column' )
+					.#{$media}-#{$dir}-#{$type}
+						flex-direction: #{$type}!important
+				@each $type in ( 'none', 'flex', 'block', 'inline-block', 'inline-block' )
+					.#{$media}-#{$dir}-#{$type}
+						display: #{$type}!important
+				@each $type in ( 'absolute', 'relative', 'fixed', 'sticky' )
+					.#{$media}-#{$dir}-#{$type}
+						position: #{$type}!important
+
+
+	@media only screen and (max-width: $screen-sm)
+		@for $i from 1 through 12
+			.col-sm-#{$i}
+				flex-basis: (100% / 12) * $i
+				max-width: (100% / 12) * $i
+			
+
+	@media only screen and (min-width: $screen-sm) and (max-width: $screen-md)
+		@for $i from 1 through 12
+			.col-md-#{$i}
+				flex-basis: (100% / 12) * $i
+				max-width: (100% / 12) * $i
+			
+
+	@media only screen and (min-width: $screen-md) and (max-width: $screen-lg)
+		@for $i from 1 through 12
+			.col-lg-#{$i}
+				flex-basis: (100% / 12) * $i
+				max-width: (100% / 12) * $i
+		

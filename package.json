@@ -7,8 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c",
     "autobuild": "rollup -c -w",
+    "sass": "node-sass src/app.sass public/app.css -w ",
     "start": "nvm use v14.15.0 && electron .",
-    "start:dev": "concurrently \"npm run autobuild\" \"ELECTRON_RELOAD=yes electron .\"",
+    "start:dev": "npm run sass & concurrently \"npm run autobuild\" \"ELECTRON_RELOAD=yes electron .\"",
     "start:browser": "concurrently \"npm run autobuild\" \"browser-sync public -w --no-ghost-mode\"",
     "package": "electron-packager . --out=dist PDACs --ignore=rollup.config.js --ignore=.gitignore --overwrite"
   },

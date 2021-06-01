@@ -1,0 +1,29 @@
+
+@import './sassis/dist/defaults'
+@import './sassis/src/sassis.sass'
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200;300;400;500;600;700;800;900&display=swap')
+
+
+
++sassis
++shorthand
++layout
+
+html
+	$sidebar: 200px
+	$header: 40px
+	$subheader: 40px
+	.sidebar
+		// +bg($bg-alt)
+		+fixed
+		+width-height($sidebar, 100vh)
+		border-right: 1px solid mono(15%)
+	.router
+		+fixed
+		+top-left(0px, $sidebar)
+		+width-height( calc(100% - #{$sidebar}), 100vh)
+		overflow: auto
+		padding: 1em
+	.panel-tree, .panel-diff, .panel-history
+		overflow: auto
+		max-height: calc( 100vh - #{$header + $subheader} )
