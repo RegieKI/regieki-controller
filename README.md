@@ -29,4 +29,4 @@ pnpm start:dev
 
 #### License
 
-[MIT](https://github.com/RegieKI/pdac/blob/main/LICENSE-MIT.md)
+[MIT](https://github.com/RegieKI/regieki-docs/blob/main/LICENSE-MIT.md)
