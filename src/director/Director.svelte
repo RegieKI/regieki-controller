@@ -5,6 +5,7 @@
 	import PlayIcon from '@/components/PlayIcon.svelte'
 	import frieder from '../frieder.js'
 	import DirectorMenu from '@/director/Menu.svelte'
+	import Data from '@/director/Data.svelte'
 
 	let data = [] // the actual data (array of objects)
 	window.data = data
@@ -375,7 +376,7 @@
 				value: null
 			})
 		}))
-		data.push( o )
+		data[data.length] = o
 		console.log('added row', o)
 	}
 
@@ -547,73 +548,7 @@ tbody
 					class:success={playing}
 					style={`transform:translate(0px,${playhead}px)`} />
 					{#each data as entry, idx}
-						<tr height="30px">
-							{#if isArray( cols ) }
-								{#each cols as c}
-										<!-------------------------------------------------------------------------------------->
-
-										{#if isArray( c.cmds ) }
-											{#each c.cmds as cmd, i}
-												<td class="strong br1-solid bb1-solid" >
-
-
-													{#if cmd.url == 'play'}
-
-
-														<div 
-															on:click={e => toggleMegaPlay( idx, (idx == mega && playing) ) } 
-															class="p0-4 m0"
-															class:filled={ idx == mega } 
-															class:alert={ idx == mega && awaitingButtons}
-															class:success={ idx == mega && playing && !awaitingButtons }
-															class:ok={ idx == mega && !playing && !awaitingButtons }>
-															<PlayIcon 
-																style=""
-																loading={false} 
-																className="w10px h10px" 
-																playing={idx == mega && playing} />
-														</div>
-													{:else if cmd.url == 'order'}
-
-															<div 
-																class={`p0-4 t2-99 l2-99 pointer `}
-																on:click={ e => setChunk(idx) }>
-																↕
-															</div>
-													{:else if cmd.url == 'delete'}
-
-															<div 
-																class={`p0-4 t2-99 l2-99 pointer `}>
-																X
-															</div>
-
-													{:else if cmd.opts }
-														<div class="select flex grow h100pc" >
-															<select 
-																class={` b0-solid ${ entry[c.name+'-'+cmd.name] } pr2`} 
-																bind:value={ entry[c.name+'-'+cmd.name] } class:filled={ entry[c.name+'-'+cmd.name] } >
-																<option></option>
-																<option disabled>---</option>
-																{#each cmd.opts as o}
-																	<option value={o} name={o}>{o}</option>
-																{/each}
-															</select>
-														</div>
-													{:else}
-														<input 
-															style={`width:${ typeof(cmd.value) == 'number' ? '60px' : '120px'} `}
-															class={`h100pc b1-solid m0 ${ entry[c.name+'-'+cmd.name] }`} 
-															type="text" bind:value={ entry[c.name+'-'+cmd.name] } />
-													{/if}
-												</td>
-											{/each}
-										{:else} NOT ARRAY {/if}
-								{/each}
-							{:else} NOT ARRAY {/if}
-						</tr>
-
-
-
+						<Data {entry} />
 					{/each}
 			</tbody>
 
