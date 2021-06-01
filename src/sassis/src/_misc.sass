@@ -1,0 +1,118 @@
+
+=device
+	@media only screen and (max-width: 48em)
+		.mobile-hide
+			display: none!important
+		.mobile-invisible
+			opacity: 0!important
+	@media only screen and (min-width: 48em)
+		.mobile-show
+			display: none!important
+		.mobile-visible
+			opacity: 1!important
+	@media only screen and (max-width: 64em)
+		.tablet-hide
+			display: none!important
+		.tablet-invisible
+			opacity: 0!important
+	@media only screen and (min-width: 64em)
+		.tablet-show
+			display: none!important
+		.tablet-visible
+			opacity: 1!important
+
+
+=no-webkit
+	&:hover, &:active, &:focus
+		outline: none
+	-webkit-appearance: none
+	-webkit-tap-highlight-color: rgba(255,255,255,0)
+	touch-action: manipulation
+
+
+=line-clamp( $lines: 6 )
+	text-overflow: ellipsis
+	overflow: hidden
+	display: -webkit-box
+	-webkit-line-clamp: #{2 * $lines}
+	-webkit-box-orient: vertical
+
+=top( $y: 0px )
+	top: $y
+=left( $x: 0px )
+	left: $x
+=bottom( $y: 0px )
+	bottom: $y
+=right( $x: 0px  )
+	right: $x
+
+=top-left( $x: 0px, $y: 0px)
+	top: $x
+	left: $y
+=top-right( $x: 0px, $y: 0px)
+	top: $x
+	right: $y
+=bottom-left( $x: 0px, $y: 0px)
+	bottom: $x
+	left: $y
+=bottom-right( $x: 0px, $y: 0px)
+	bottom: $x
+	right: $y
+
+// width height
+
+=wh( $w: 100%, $h: 100% )
+	width: $w
+	height: $h
+
+=width-height( $w: 100%, $h: 100% )
+	width: $w
+	height: $h
+
+
+=origin( $x: 50%, $y: 50% )
+	transform-origin: $x $y
+
+=translate( $x: -50%, $y: -50% )
+	transform: translate( $x, $y )
+
+
+=rotate($deg: 45deg)
+	transform: rotateZ($deg)
+
+
+=reset
+	*
+		-webkit-appearance: none
+		box-sizing: border-box
+		transform-origin: 50% 50%
+	a
+		text-decoration: none
+	body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video, select
+		margin: 0
+		padding: 0
+		font-size: 100%
+		font: inherit
+		vertical-align: baseline
+	article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section
+		display: block
+
+	body
+		width: 100%
+		height: 100%
+
+	ol, ul 
+		list-style: none
+
+	blockquote, q
+		quotes: none
+
+	blockquote:before, blockquote:after, q:before, q:after
+		content: ''
+		content: none
+
+	table
+		border-collapse: collapse
+		border-spacing: 0
+
+	

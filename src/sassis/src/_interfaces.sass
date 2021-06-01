@@ -1,0 +1,191 @@
+@import '_shorthand'
+
+=interfaces
+
+
+	/* ---------------------- EVERYTHING ---------------------- */
+
+	// EVERYTHING
+
+	*, *:after, *:before, input, textarea, select
+		border-style: solid
+		border-width: 0
+		background: transparent
+		border-radius: 0px
+		font-weight: normal
+
+	// TEXTUAL INPUTS
+
+	textarea, input[type=text], input[type=password], input[type=number], input[type=email], select, .dropdown
+		padding: var(--input-padding)
+		flex-basis: 0
+		// min-width: 1em
+	textarea
+		min-height: 7em
+		resize: none
+
+	// LINKS
+
+	a, select
+		text-decoration: none
+
+	a, select, .clickable
+		cursor: pointer
+	*.disabled, *[disabled]
+		cursor: default
+
+	// BUTTONS
+
+	input, button, .button, select, .dropdown
+		white-space: nowrap
+
+	button, .button
+		text-align: center
+		padding: var(--button-padding)
+	.dropdown, select
+		text-align: left
+
+	// THINGS WITH BORDERS
+
+	select, input, button, textarea, .button, .dropdown
+		border-width: var(--stroke-width)
+		outline: none
+		&:disabled, &:disabled + span, &.disabled, &.disabled + span
+			opacity: 0.5
+
+	/* ---------------------- SELECT + CHEVRONS ---------------------- */
+
+	.dropdown
+		padding-right: var(--icon-padding, 2.2em)
+		> *
+			+abs
+		&:not(:focus) > *
+			display: none
+
+	.select, .chevron, .dropdown
+		+relative
+		+inline-block
+		select
+			padding-right: var(--icon-padding, 2.2em)
+			width: 100%
+		&:after
+			content: ""
+			+width-height(0.5em, 0.5em)
+			+top-right(50%, 0% )
+			margin: var(--input-padding)
+			margin-top: -0.25em
+			+absolute
+			border-left-width: var(--stroke-width)
+			border-bottom-width: var(--stroke-width)
+			border-style: solid
+			transform: rotateZ(-45deg) translate( 0%, -50% )
+			transform-origin: 50% 50%
+
+	/* ---------------------- FILE ---------------------- */
+
+	.file
+		input[type=file]
+			opacity: 0
+			+abs
+			+t(0)
+			+l(0)
+			+wh()
+
+	/* ---------------------- INPUT RANGE ---------------------- */
+
+	input[type=range]
+		flex-basis: 0
+		// min-width: 1em
+		-webkit-appearance: none
+		background: transparent
+		&::-webkit-slider-thumb
+			-webkit-appearance: none
+			width: 1em
+			height: 1em
+			min-height: 1em
+			border: none
+			border-radius: 0px
+		&.rounded, &.round
+			&::-webkit-slider-thumb
+				border-radius: 100%
+		&.start, &.end
+			min-height: 1em
+			overflow: hidden
+			&::-webkit-slider-thumb
+				width: 1%
+				transform-origin: 0% 50%
+		&.start::-webkit-slider-thumb
+			transform: scale( -200, 1 )
+		&.end::-webkit-slider-thumb
+			transform: scale( 200, 1 )
+
+
+	/* ---------------------- INPUT COLOR ---------------------- */
+
+	.color
+		overflow: hidden
+		+rel
+		padding: var(--input-padding)
+		input
+			padding: 0
+			+abs
+			+top-left( -100%, -100% )
+			+width-height(300%, 300%)
+
+
+	/* ---------------------- RADIOS + CHECKBOXES ---------------------- */
+
+
+	// DOT + CROSS + DASH + CHECKBOX / RADIO > SPAN
+
+	.dot, .cross, .dash, .checkbox input + span, .radio input + span
+		overflow: hidden
+		+rel
+
+	// CHECKBOX / RADIO > SPAN
+
+	.checkbox, .radio
+		input + span
+			width: 1em
+			height: 1em
+			+rel
+			+flex
+ 
+	// RADIO DOT
+
+	.radio
+		input + span
+			border-radius: 1em
+
+	// DASH + CHECKBOX: INDETERMINATE SPAN
+
+	.dash, .checkbox input:indeterminate + span, .radio input:indeterminate + span
+		&:before, &:after
+			content: ""
+			+fill
+			+top(50%)
+			margin-top: -0.5px
+			border-top-width: var(--stroke-width) 
+
+	// CHECKBOX WRAP
+
+	.checkbox, .radio
+		+flex
+		+align-items-center
+		padding: var(--input-padding)
+		padding-left: 0px
+		padding-top: 0px
+		padding-bottom: 0px
+		span
+			border-width: 1px
+			margin: var(--input-padding)
+			margin-left: 0em
+			margin-top: 0em
+			margin-bottom: 0em
+		input
+			opacity: 0
+			padding: 0
+			margin: 0
+			+abs
+
+
